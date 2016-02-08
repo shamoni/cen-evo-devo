@@ -1,0 +1,78 @@
+---
+title: "Analysis of repeats identified in TAIR10 by LASTZ with CEN2 as query"
+output: html_document
+---
+```{r setup}
+knitr::opts_knit$set(root.dir = '../EXPERIMENTS/7_TAIR10_LASTZ')
+```
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(RColorBrewer)
+library(dplyr)
+data <- read.csv("q_CEN2_TAIR10.forR.csv", sep="\t", header=TRUE)
+dCEN2 <- filter(data, name2 == "CEN2")
+dCEN2$name1 <- as.factor(dCEN2$name1)
+```
+
+Summary table of repeats identified by CEN2 in TAIR10
+```{r, echo=FALSE, warning=FALSE}
+data2 <- select(dCEN2, name1, size1, strand2, idPct, length1)
+data2 <- data2 %>% group_by(name1) %>% mutate(rep_fraction = (sum(length1)/size1)*100)
+data2 <- data2 %>% group_by(name1) %>% mutate(no_of_repeats = n())
+data2 <- data2 %>% group_by(name1) %>% mutate(med_length = median(length1)*1.0)
+data2 <- data2 %>% group_by(name1) %>% mutate(range_length = paste(min(length1),max(length1),sep="-"))
+data2 <- data2 %>% group_by(name1) %>% mutate(range_idPct = paste(min(idPct),max(idPct),sep="-"))
+data2 <- data2 %>% group_by(name1) %>% mutate(strand = n_distinct(strand2))
+data2 <- select(data2, name1, no_of_repeats, rep_fraction, med_length, range_length, range_idPct, strand)
+data2 <- distinct(data2)
+data2 <- ungroup(data2)
+data2 <- arrange(data2,name1)
+library(knitr)
+kable(data2)
+```
+
+Total number of repeats identified is `r length(data$length1)` with a median length of `r median(data$length1)`
+
+Histogram of repeat length
+```{r, echo=FALSE}
+s <- ggplot(dCEN2, aes(length1)) + geom_histogram(binwidth=1)
+s <- s + scale_x_continuous(name="Repeat Lengths", limits=c(100,250), breaks=c(seq(100,250,by=25)))
+s <- s + theme_minimal()
+s
+```
+
+Histogram of % identity of repeats to query sequence
+```{r, echo=FALSE}
+t <- ggplot(dCEN2, aes(idPct)) + geom_histogram(binwidth=1)
+t <- t + scale_x_continuous(name="% Identity of repeats to CEN2", limits=c(70,100), breaks=c(seq(70,100,by=5)))
+t <- t + theme_minimal()
+t
+```
+
+```{r, echo=FALSE}
+spacing <- read.csv("q_CEN2_TAIR10.spacing.csv", header=FALSE, sep= "\t")
+```
+
+```{r, echo=FALSE, warning=FALSE}
+r <- ggplot(spacing, aes(x=V3, fill=V2)) + xlim(-5,15) + geom_density()
+r <- r + facet_grid(V2~., scales="free_y")
+r <- r + theme_minimal() + labs(title="Base pairs between adjacent repeats", x="", y="")
+r <- r + guides(fill=FALSE) 
+r <- r + scale_fill_manual(values=rev(brewer.pal(6,"Blues")))
+r <- r + theme(strip.text=element_text(size=12), strip.background = element_rect(fill="grey",size=1))
+r <- r + theme(axis.text=element_text(size=10, face="bold"))
+r
+```
+
+To generate a reliable multiple sequence alignment from these repeats I want to discard sequences that have too many gaps inserted by LASTZ to get a hit. I am choosing to use the same cut off that I used for the PacBio dataset i.e. > 14
+```{r, echo=FALSE}
+gaps <- read.csv("q_CEN2_TAIR10.gaps.csv", header=FALSE, sep= "\t")
+gapsCEN2 <- gaps[gaps$V2 =="CEN2",]
+gdf <- data.frame(table(gapsCEN2$V3))
+u <- ggplot(gdf, aes(x=Var1,y=Freq)) + geom_histogram(stat="identity")
+u <- u + scale_y_log10() + theme_bw() 
+u <- u + xlab("No. of gaps in target") +ylab("Counts on a log scale")
+u <- u + theme(axis.text=element_text(size=10, face="bold"), axis.title=element_text(size=18))
+u <- u + scale_x_discrete(breaks=seq(0,100,2))
+u
+```
