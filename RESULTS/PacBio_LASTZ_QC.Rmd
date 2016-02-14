@@ -2,12 +2,13 @@
 title: "Analysis of repeats identified in target PacBio contigs using LASTZ"
 output: html_document
 ---
-```{r setup}
+```{r setup, echo=FALSE}
 knitr::opts_knit$set(root.dir = '../EXPERIMENTS/5_PacBio_LASTZ')
+knitr::opts_chunk$set(warning=FALSE,error=FALSE,message=FALSE)
 ```
-```{r, echo=FALSE, warning=FALSE}
-library(ggplot2)
-library(RColorBrewer)
+```{r, echo=FALSE}
+require(ggplot2)
+require(RColorBrewer)
 data <- read.csv("q_contig6TRF_PacBio.forR.csv", sep="\t", header=TRUE)
 ```
 
@@ -45,7 +46,7 @@ spacing <- read.csv("q_contig6TRF_PacBio.spacing.csv", header=FALSE, sep= "\t")
 sapply(split(spacing$V3,spacing$V2),summary)
 ```
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE}
 r <- ggplot(spacing, aes(x=V3, fill=V2)) + xlim(-5,15) + geom_density()
 r <- r + facet_grid(V2~., scales="free_y")
 r <- r + theme_minimal() + labs(title="Base pairs between adjacent repeats by query", x="", y="")
@@ -60,7 +61,7 @@ From the above analysis it appears that all 6 query sequences identify approxima
 
 ## CEN2 as query
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=FALSE}
 library(dplyr)
 dCEN2 <- filter(data, name2 == "CEN2")
 dCEN2$name1 <- as.factor(dCEN2$name1)
@@ -97,7 +98,7 @@ u
 ```
 
 Summary table of repeats identified by CEN2 in PacBio contigs
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE}
 data2 <- select(dCEN2, name1, size1, strand2, idPct, length1)
 data2 <- data2 %>% group_by(name1) %>% mutate(rep_fraction = (sum(length1)/size1)*100)
 data2 <- data2 %>% group_by(name1) %>% mutate(no_of_repeats = n())

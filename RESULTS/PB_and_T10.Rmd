@@ -2,10 +2,12 @@
 title: "Clustering all repeats using Phyclust"
 output: html_document
 ---
-```{r setup}
+```{r setup,echo=FALSE}
 knitr::opts_knit$set(root.dir = '../EXPERIMENTS/8_PB_and_T10')
+knitr::opts_chunk$set(fig.path='Figures/')
+knitr::opts_chunk$set(warning=FALSE,error=FALSE,message=FALSE)
 ```
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE}
 library(ggplot2)
 library(dplyr)
 library(plyr)
@@ -15,7 +17,7 @@ load("./RData/2015-01-21-ClstrOptK2-10-PBandT10.RData")
 ```
 
 Ran the find.best() method of the R-package Phyclust from K=2 to K=10 on 6 different randomly sampled 500 repeats. The plot of maximum LogL values increases with cluster number but does not have an obvious inflection point suggesting an ideal cluster number.
-```{r, echo=FALSE, fig.height=3, fig.width=5, fig.align='center'}
+```{r LogL_by_K, echo=FALSE, fig.height=3, fig.width=5, fig.align='center'}
 l <- length(phyclust.clstrs)
 df <- data.frame(i=integer(),k=integer(),logL=integer())
 
@@ -38,7 +40,7 @@ p
 
 
 To visualize the clustering history I generated clustergrams for four of the runs. A clustergram is a plot where each line represents the clustering history of a single data point.
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6,fig.width=7}
+```{r ClustergramK2-K10, echo=FALSE, fig.height=6,fig.width=7}
 plot.clustergram <- function(clusters){
     i_pos <- !duplicated(clusters$i)
     means <- plyr::ddply(clusters,.(cluster,i),summarise,min=min(height),max=max(height))
@@ -90,7 +92,7 @@ lapply(phyclst_all,toprint)
 ```
 
 The clustergrams of the following clustering solutions are informative and suggest that K=6 is a better solution that K=7(?)
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r Clustergram_K6K7, echo=FALSE}
 #Generate the the dataframes that are inputs for the clustergram function
 Kmed6 <- data.frame(obs = seq_len(findbest6_Kmedoids$N.X.org), i = 1, k = 6, cluster = findbest6_Kmedoids$class.id)
 KrndMu6 <- data.frame(obs = seq_len(findbest6_randomMu$N.X.org), i = 2, k = 6, cluster = findbest6_randomMu$class.id)
@@ -126,7 +128,7 @@ I decided to move forward with the K=6 result from the `r .init.method[5]` initi
 seqdata <- read.fasta("q_CEN2_All.aln2")
 plotdots(seqdata$org, findbest6_Kmedoids$class.id, main="")
 ````
-![](./Images/q_CEN2_All_plotdots.tiff)
+![](./Figures/q_CEN2_All_plotdots.png)
 
 Below is the output from a call to plothist() which displays the number of mutations of all sequences within each cluster relative to the chosen reference sequence. The top plot is for the whole dataset.
 ```{r, echo=FALSE, eval=FALSE}
@@ -134,12 +136,12 @@ custom <-c(heat.colors(10)[3],terrain.colors(10)[c(1,4)],heat.colors(10)[7],topo
 .Color <- custom
 plothist(seqdata$org,findbest6_Kmedoids$class.id)
 ```
-![](./Images/q_CEN2_All_plothist.tiff)
+![](./Figures/q_CEN2_All_plothist.png)
 
 Summary diversity stats of the six clusters
 ```{r, echo=FALSE, eval=FALSE}
 source("./Scripts/DivCalculator.R")
-load("./RData//findbest6_Kmedoids.RData")
+load("./RData/findbest6_Kmedoids.RData")
 seqdata <- read.fasta("q_CEN2_All.aln2")
 K6pi <- NucleotideDiv(findbest6_Kmedoids,seqdata$org)
 K6hap <-HaplotypeDiv(findbest6_Kmedoids,seqdata$org)
@@ -155,7 +157,7 @@ knitr::kable(div.df)
 ```
 
 Below are phylogenetic relationships between all 6868 repeats analysed using the neighbor-joining method and different distance matrices. Edge colors represent cluster assignment.
-```{r, echo=FALSE, eval=FALSE}
+```{r K6_NJtrees, echo=FALSE, eval=FALSE}
 ###This part was run on the server
 library(ape)
 library(parallel)
@@ -189,10 +191,10 @@ plot.new()
 clstr <- as.factor(unique(findbest6_Kmedoids$class.id))
 legend('center',levels(clstr), fill = .Color, bty="n",title="Clusters", cex=1.2)
 ```
-![](./Images/q_CEN2_All_NJ.tiff)
+![](./Figures/q_CEN2_All_NJ.png)
 
 Phylogenetic relationships between the consensus sequenes of the six clusters analyzed by the Neighbor Joining method and JC69 distance matrix
-```{r, echo=FALSE}
+```{r Clstrs_consensus_NJtree, echo=FALSE}
 Mu <- findbest6_Kmedoids$Mu
 ret <- phyclust.edist(Mu, edist.model = .edist.model[1])
 ret.tree <- nj(ret)

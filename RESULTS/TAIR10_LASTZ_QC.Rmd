@@ -4,8 +4,9 @@ output: html_document
 ---
 ```{r setup}
 knitr::opts_knit$set(root.dir = '../EXPERIMENTS/7_TAIR10_LASTZ')
+knitr::opts_chunk$set(warning=FALSE,error=FALSE,message=FALSE)
 ```
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE}
 library(ggplot2)
 library(RColorBrewer)
 library(dplyr)
@@ -15,7 +16,7 @@ dCEN2$name1 <- as.factor(dCEN2$name1)
 ```
 
 Summary table of repeats identified by CEN2 in TAIR10
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE}
 data2 <- select(dCEN2, name1, size1, strand2, idPct, length1)
 data2 <- data2 %>% group_by(name1) %>% mutate(rep_fraction = (sum(length1)/size1)*100)
 data2 <- data2 %>% group_by(name1) %>% mutate(no_of_repeats = n())
@@ -31,9 +32,7 @@ library(knitr)
 kable(data2)
 ```
 
-Total number of repeats identified is `r length(data$length1)` with a median length of `r median(data$length1)`
-
-Histogram of repeat length
+Total number of repeats identified is `r length(data$length1)` with a median length of `r median(data$length1)`. Histogram of repeat length:
 ```{r, echo=FALSE}
 s <- ggplot(dCEN2, aes(length1)) + geom_histogram(binwidth=1)
 s <- s + scale_x_continuous(name="Repeat Lengths", limits=c(100,250), breaks=c(seq(100,250,by=25)))
@@ -53,7 +52,7 @@ t
 spacing <- read.csv("q_CEN2_TAIR10.spacing.csv", header=FALSE, sep= "\t")
 ```
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE}
 r <- ggplot(spacing, aes(x=V3, fill=V2)) + xlim(-5,15) + geom_density()
 r <- r + facet_grid(V2~., scales="free_y")
 r <- r + theme_minimal() + labs(title="Base pairs between adjacent repeats", x="", y="")

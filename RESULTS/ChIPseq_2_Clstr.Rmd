@@ -2,11 +2,13 @@
 title: "Analyzing distribution of ChIPseq reads across clusters"
 output: html_document
 ---
-```{r setup}
+```{r setup, echo=FALSE}
 knitr::opts_knit$set(root.dir = '../EXPERIMENTS/9_ChIPseq_2_Clstr')
+knitr::opts_chunk$set(fig.path='Figures/')
+knitr::opts_chunk$set(message=FALSE,warning=FALSE,error=FALSE)
 ```
 A comparison of the relative abundance of the clusters between the genome assemblies and the input (K=30, cluster assignment) highlights clear discrepancies. In comparison to the Input, clusters 4 and 1 are under-represented in the assemblies, while clusters 6,5 and 2 are over-represented.  
-```{r, echo=FALSE, message=FALSE,warning=FALSE}
+```{r Cluster_Abundance, echo=FALSE}
 library(reshape)
 library(ggplot2)
 library(phyclust)
@@ -35,7 +37,7 @@ p
 ```
 
 Fraction of ChIPseq reads that originate from CEN repeats. This estimate is based on binning reads into two fractions, those that generate Kmers that overlap with a set of signature CEN kmers extracted from the above clusters.
-```{r, echo=FALSE}
+```{r ChIPseq_fractions, echo=FALSE}
 K25.032015 <- read.csv("./2015-03-NChIP-K25/2015-03-NChIP-K25_summary.csv", header=T)
 K25.082015 <- read.csv("./2015-08-NChIP-K25/2015-08-NChIP-K25_summary.csv", header=T)
 K25.summary <- rbind(K25.032015,K25.082015)
@@ -53,21 +55,17 @@ K30.out.plot
 ```
 
 Next, I asked what is the distribution across the six clusters of reads in a ChIPseq library that originate from CEN repeats. It seems clear that all histone marks tested, except for *A. thaliana* CENH3 and *L. oleraceum* CENH3 have the same distribution as in the input, i.e. their distribution across the clusters follows their relative abundance in the genome. However, both the native and divergent CENH3 show a distinct enrichment for CEN repeats from Cluster 4 and a depletion for repeats from Cluster 3.
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-K25.032015 <- read.csv("./2015-03-NChIP-K25/2015-03-NChIP-K25_results.csv", header=T)
-K25.082015 <- read.csv("./2015-08-NChIP-K25/2015-08-NChIP-K25_results.csv", header=T)
-K25.results <- rbind(K25.032015,K25.082015)
-K25.out <-clstr.distribution(K25.results,"ChIP_metadata.csv","Unique")
-K25.out.plot <-plot.clstr.distribution(K25.out)
-
+```{r Cluster_distribution, echo=FALSE, message=FALSE, warning=FALSE}
 K30.032015 <- read.csv("./2015-03-NChIP-K30/2015-03-NChIP-K30_results.csv", header=T)
 K30.082015 <- read.csv("./2015-08-NChIP-K30/2015-08-NChIP-K30_results.csv", header=T)
 K30.results <- rbind(K30.032015,K30.082015)
-K30.out <-clstr.distribution(K30.results,"ChIP_metadata.csv","Unique")
-K30.out.plot <-plot.clstr.distribution(K30.out)
+K30.out.1 <-clstr.distribution.1(K30.results,"ChIP_metadata.csv","Unique")
+K30.out.plot.1 <-plot.clstr.distribution(K30.out.1)
+K30.out.2 <-clstr.distribution.2(K30.results,"ChIP_metadata.csv","Unique")
+K30.out.plot.2 <-plot.clstr.distribution(K30.out.2)
 
-K25.out.plot
-K30.out.plot
+K30.out.plot.1
+K30.out.plot.2
 ```
 
 To identify potential chromosome-specific repeats, I visualized the phylogenetic relationship of repeats extracted from the TAIR10 genome assembly and coloured the tips by their chromosome of origin.
@@ -82,7 +80,7 @@ TAIR10seqs <- DNAbin[grepl("Chr",labels(DNAbin)),]
 TAIR10tree <- nj(dist.dna(TAIR10seqs,pairwise.deletion=TRUE,model="F84"))
 save(TAIR10tree,file="./RData/TAIR10tree.RData")
 ```
-```{r, echo=FALSE,message=FALSE,warning=FALSE}
+```{r Repeats_by_Chromosome, echo=FALSE}
 load("./RData/TAIR10tree.RData")
 n.tips <- length(TAIR10tree$tip.label)
 col.vector <- vector(mode="character",length=nrow(TAIR10tree$edge))
@@ -97,17 +95,16 @@ Cluster <- as.factor(Cluster)
 
 par(mar=c(0,0,0,0))
 mat <-matrix(c(1,2,3,4),1,4,byrow=TRUE)
-nf <-layout(mat,widths=c(1,0.4,1,0.4),heights=1)
-custom <-c("#000000","#FF99FFFF","#00E5FFFF","#00FF4DFF","#FFFF00FF","#004CFFFF")
+layout(mat,widths=c(1,0.4,1,0.4),heights=1)
+custom <-brewer.pal(11,"Spectral")[c(9,7,4,3,2)]
+custom <-c(gray(0),custom)
 palette(custom)
 plot(TAIR10tree, type="u",no.margin=TRUE,show.tip.label=FALSE, edge.color=Chr)
 plot.new()
 legend('left',levels(Chr)[-1], fill = custom[-1], bty="n",cex=1.2,x.intersp=0.2)
-custom <-c(gray(1:10/10)[c(1,4,4)],heat.colors(10)[3],terrain.colors(10)[1],gray(1:10/10)[c(4,4)])
+custom <-c(gray(0),heat.colors(10)[3],terrain.colors(10)[c(1,4)],heat.colors(10)[7],topo.colors(10)[c(4,3)])
 palette(custom)
 plot(TAIR10tree, type="u",no.margin=TRUE, show.tip.label=FALSE, edge.color=Cluster)
 plot.new()
-legend("left",legend=c("Cluster3","Cluster4","Others"), fill = custom[c(4,5,6)], bty="n",cex=1.2,x.intersp=0.2)
+legend("left",legend=c("Cluster1","Cluster2","Cluster3","Cluster4","Cluster5","Cluster6"), fill = custom[-1], bty="n",cex=1.2,x.intersp=0.2)
 ```
-
-

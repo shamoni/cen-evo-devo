@@ -1,2 +1,5 @@
 DATA/
 SCRATCH/
+*.Rhistory
+*.html
+RESULTS/Figures/
