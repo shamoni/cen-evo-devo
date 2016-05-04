@@ -1,0 +1,86 @@
+---
+title: "Analyzing distribution of ChIPseq reads across clusters"
+output: html_document
+---
+```{r setup, echo=FALSE}
+knitr::opts_knit$set(root.dir = '../EXPERIMENTS/8_ChIPseq_2_Clstr')
+knitr::opts_chunk$set(fig.path='Figures/')
+knitr::opts_chunk$set(message=FALSE,warning=FALSE,error=FALSE)
+knitr::opts_chunk$set(dev=c('pdf','png'))
+```
+A comparison of reads with signature Kmers assigned to a single cluster versus multiple clusters by Kmer size shows a clear trend where longer Kmers are better at uniquely assigning a read to a cluster.
+```{r Supplementary_Multi-vs-Single_Cluster_Assignmnet_by_Ksize, echo=FALSE}
+library(reshape)
+library(ggplot2)
+source("./Scripts/prop_plotting_functions.R")
+Summary.K30 <- read.csv("./NChIP-K30/NChIP-K30_summary.csv", header=T)
+Summary.K25 <- read.csv("./NChIP-K25/NChIP-K25_summary.csv", header=T)
+Summary.K20 <- read.csv("./NChIP-K20/NChIP-K20_summary.csv", header=T)
+
+Summary.K30 <- Summary.K30[-c(1,2)]
+Summary.K25 <- Summary.K25[-c(1,2)]
+Summary.K20 <- Summary.K20[-c(1,2)]
+
+Summary.K30.p <- prop.table(colSums(Summary.K30))
+Summary.K25.p <- prop.table(colSums(Summary.K25))
+Summary.K20.p <- prop.table(colSums(Summary.K20))
+
+prop.df <- rbind(Summary.K30.p,Summary.K25.p,Summary.K20.p)
+rownames(prop.df) <- c("K=30","K=25","K=20")
+colnames(prop.df) <-c("Single Cluster","Multiple Clusters")
+prop.df <- as.data.frame(t(prop.df))
+prop.df$Clusters <- as.factor(rownames(prop.df))
+prop.df.melted <- melt(prop.df)
+
+custom <-c(heat.colors(10)[3],gray(0:8/8)[3])
+p <-ggplot(prop.df.melted, aes(x=variable,y=value,fill=Clusters)) + geom_bar(stat="identity")
+p <- p + scale_fill_manual(values=custom) + theme_bw()
+p <- p + theme(axis.title=element_blank(),axis.text=element_text(size=12))
+p <- p + guides(fill=guide_legend(title="Read Assigned to"))
+p
+```
+
+A comparison of the relative abundance of the clusters between the genome assemblies and the WT Col input (K=30, cluster assignment) highlights clear discrepancies. In comparison to the Input, clusters 4 and 1 are under-represented in the assemblies, while clusters 6,5 and 2 are over-represented.  
+```{r Cluster_Abundance, echo=FALSE}
+#library(reshape)
+#library(ggplot2)
+library(phyclust)
+seqdata <- read.fasta("q_CEN2_All_K6.aln2")
+ClstrT10 <- sapply(seqdata$seqname[grepl("Chr",seqdata$seqname)],parse_clstr)
+ClstrT10.p <-prop.table(table(ClstrT10))
+ClstrPB <- sapply(seqdata$seqname[!grepl("Chr",seqdata$seqname)],parse_clstr)
+ClstrPB.p <- prop.table(table(ClstrPB))
+NChIP.K30 <- read.csv("./NChIP-K30/NChIP-K30_results.csv", header=T)
+Input <-NChIP.K30[which(NChIP.K30$filename == "SML_14_merged.fa" & NChIP.K30$Class == "Unique"),]
+Input <-Input[-c(1,2)]
+colnames(Input) <-c("1","2","3","4","5","6")
+ClstrInput.p <- prop.table(t(Input))
+prop.df <- cbind(ClstrT10.p,ClstrPB.p,ClstrInput.p)
+colnames(prop.df) <- c("TAIR10","PacBio \nContigs","INPUT")
+prop.df <- as.data.frame(prop.df)
+prop.df$Clusters <- as.factor(rownames(prop.df))
+prop.df.melted <- melt(prop.df)
+
+custom <-c(heat.colors(10)[3],terrain.colors(10)[c(1,4)],heat.colors(10)[7],topo.colors(10)[c(4,3)])
+p <-ggplot(prop.df.melted, aes(x=variable,y=value,fill=Clusters)) + geom_bar(stat="identity")
+p <- p + scale_fill_manual(values=custom) + theme_bw()
+p <- p + theme(axis.title=element_blank(),axis.text=element_text(size=12))
+p
+```
+
+Fraction of ChIPseq reads that originate from CEN repeats. This estimate is based on binning reads into two fractions, those that generate Kmers that overlap with a set of signature CEN kmers extracted from the above clusters.
+```{r ChIPseq_fractions, echo=FALSE}
+Summary.K30 <- read.csv("./NChIP-K30/NChIP-K30_summary.csv", header=T)
+K30.out <-cen.fraction(Summary.K30,"ChIP_metadata.csv")
+K30.out <- K30.out[!(K30.out$Antibody %in% "INPUT"),]
+K30.out.plot <-plot.cen.fraction(K30.out)
+K30.out.plot
+```
+
+Next, I asked what is the distribution of a ChIPseq reads across the six CEN180 clusters. Strikingly, both the native and divergent CENH3s show a distinct enrichment for CEN repeats from Cluster 4 and a depletion for repeats from Cluster 3.
+```{r Cluster_distribution, echo=FALSE, message=FALSE, warning=FALSE}
+Results.K30 <- read.csv("./NChIP-K30/NChIP-K30_results.csv", header=T)
+K30.out <-clstr.distribution(Results.K30,"ChIP_metadata.csv","Unique")
+K30.out.plot <-plot.clstr.distribution(K30.out)
+K30.out.plot
+```

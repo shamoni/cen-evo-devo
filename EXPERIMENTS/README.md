@@ -102,17 +102,8 @@ I used clustalo to align the repeats and msa_refiner.py to refine the alignment.
 	Kept 4493 aligned sequences after deleting sequences with insertions shared by < 20 other sequences
 	Trimmed msa has length 202 with 4493 aligned sequences
 
-## Test R package Phyclust for clustering of repeats on a subset of the data: PacBio contig078
-	/EXPERIMENTS/6_Contig078_Phyclust
-
-Generated the following files from the full dataset in folder /EXPERIMENTS/5_PacBio_LASTZ
-
-	grep "JSAD01000078.1" q_contig6TRF_PacBio.forR.csv > q_contig6TRF_PacBio078.forR.csv
-	~/PROTOCOLS/fasta_by_id.py -i JSAD01000078.1 q_CEN2_PacBio.aln2
-
-
 ## Use LASTZ to extract repeats from the Arabidopsis Genome Assembly i.e. TAIR10
-	/EXPERIMENTS/7_TAIR10_LASTZ
+	/EXPERIMENTS/6_TAIR10_LASTZ
 	
 	lastz /isner/share/genomes/thaliana/TAIR10/Genomic/TAIR10_all.fas[nameparse=darkspace][multiple] CEN2.fa --coverage=90 --ambiguous=iupac --format=general:score,name1,strand1,size1,start1,end1,name2,strand2,identity,length1,align1  > q_CEN2_TAIR10.csv
 	../../PROTOCOLS/parse_lastz.py q_CEN2_TAIR10.csv -o -s -p
@@ -129,7 +120,7 @@ Generated the following files from the full dataset in folder /EXPERIMENTS/5_Pac
 	Trimmed msa has length 189 with 2399 aligned sequences
 	
 ## Generate clusters by analyzing all repeats identified i.e. both PacBio and TAIR10
-	/EXPERIMENTS/8_PB_and_T10
+	/EXPERIMENTS/7_PB_and_T10
 	
 	cp ../5_PacBio_LASTZ/q_CEN2_PacBio.fa .
 	cp ../7_TAIR10_LASTZ/q_CEN2_TAIR10.fa .
@@ -165,11 +156,11 @@ To write a fast file in which the cluster id is appended to the name of the sequ
 	mv q_CEN2_All_K6.aln2 ../9_ChIPseq_2_Clstr
 
 ## Assign ChIPseq reads to CEN clusters and analyze distribution of reads across clusters
-	/EXPERIMENTS/9_ChIPseq_2_Clstr
+	/EXPERIMENTS/8_ChIPseq_2_Clstr
 	~/PROTOCOLS/parse_in2_clstrs.py q_CEN2_All_K6.aln2
-	
-	~/PROTOCOLS/Seq_2_Clstr.py -Fc q_CEN2_All_K6_Clusters/ -Fr ~/DATA/2015-03-NChIP/Merged_reads/ -O 2015-03-NChIP-K30 -K 30
-	~/PROTOCOLS/Seq_2_Clstr.py -Fc q_CEN2_All_K6_Clusters/ -Fr ~/DATA/2015-08-NChIP/Merged_reads/ -O 2015-08-NChIP-K30 -K 30
+
+	~/cen-evo-devo/PROTOCOLS/Seq_2_Clstr.py -Fc q_CEN2_All_K6_Clusters/ -Fr ~/cen-evo-devo/DATA/Select_Data/ -O NChIP-K30 -K 30
+
 	Processing Kmers from 6 Clusters
 	Identifying Kmers of size 30 shared by at least 100 sequences within the cluster
 
@@ -179,10 +170,9 @@ To write a fast file in which the cluster id is appended to the name of the sequ
 	q_CEN2_All_K6.aln2_Cluster4.fa; No. of Kmers 153; No. of Signature Kmers 21
 	q_CEN2_All_K6.aln2_Cluster5.fa; No. of Kmers 99; No. of Signature Kmers 99
 	q_CEN2_All_K6.aln2_Cluster6.fa; No. of Kmers 350; No. of Signature Kmers 350
-	
-	~/PROTOCOLS/Seq_2_Clstr.py -Fc q_CEN2_All_K6_Clusters/ -Fr ~/DATA/2015-03-NChIP/Merged_reads/ -O 2015-03-NChIP-K25 -K 25
-	~/PROTOCOLS/Seq_2_Clstr.py -Fc q_CEN2_All_K6_Clusters/ -Fr ~/DATA/2015-08-NChIP/Merged_reads/ -O 2015-08-NChIP-K25 -K 25
-	
+
+	~/cen-evo-devo/PROTOCOLS/Seq_2_Clstr.py -Fc q_CEN2_All_K6_Clusters/ -Fr ~/cen-evo-devo/DATA/Select_Data/ -O NChIP-K25 -K 25
+
 	Processing Kmers from 6 Clusters
 	Identifying Kmers of size 25 shared by at least 100 sequences within the cluster
 
@@ -191,9 +181,55 @@ To write a fast file in which the cluster id is appended to the name of the sequ
 	q_CEN2_All_K6.aln2_Cluster3.fa; No. of Kmers 447; No. of Signature Kmers 335
 	q_CEN2_All_K6.aln2_Cluster4.fa; No. of Kmers 161; No. of Signature Kmers 16
 	q_CEN2_All_K6.aln2_Cluster5.fa; No. of Kmers 127; No. of Signature Kmers 127
-	q_CEN2_All_K6.aln2_Cluster6.fa; No. of Kmers 434; No. of Signature Kmers 434	
+	q_CEN2_All_K6.aln2_Cluster6.fa; No. of Kmers 434; No. of Signature Kmers 434
+
+	~/cen-evo-devo/PROTOCOLS/Seq_2_Clstr.py -Fc q_CEN2_All_K6_Clusters/ -Fr ~/cen-evo-devo/DATA/Select_Data/ -O NChIP-K20 -K 20
+
+	Processing Kmers from 6 Clusters
+	Identifying Kmers of size 20 shared by at least 100 sequences within the cluster
+
+	q_CEN2_All_K6.aln2_Cluster1.fa; No. of Kmers 176; No. of Signature Kmers 22
+	q_CEN2_All_K6.aln2_Cluster2.fa; No. of Kmers 296; No. of Signature Kmers 182
+	q_CEN2_All_K6.aln2_Cluster3.fa; No. of Kmers 477; No. of Signature Kmers 329
+	q_CEN2_All_K6.aln2_Cluster4.fa; No. of Kmers 169; No. of Signature Kmers 14
+	q_CEN2_All_K6.aln2_Cluster5.fa; No. of Kmers 144; No. of Signature Kmers 138
+	q_CEN2_All_K6.aln2_Cluster6.fa; No. of Kmers 480; No. of Signature Kmers 475
+
+## Map ChIPseq reads to the TAIR10 reference genome and analyze peaks and correlation between binding profiles
+	/EXPERIMENTS/9_CENH3_mapping
+	.../../PROTOCOLS/bwa-mapping.py -f ../../DATA/Select_Data/ -d T10_index/T10 -o BWA_mapping
+	../../PROTOCOLS/macs_peakfinding.sh BWA_mapping/SML_17_mapto_T10.bam BWA_mapping/SML_19_mapto_T10.bam AtCENH3_rep1
+	../../PROTOCOLS/macs_peakfinding.sh BWA_mapping/SML_18_mapto_T10.bam BWA_mapping/SML_19_mapto_T10.bam AtCENH3_rep2
+	../../PROTOCOLS/macs_peakfinding.sh BWA_mapping/SML_23_mapto_T10.bam BWA_mapping/SML_43_mapto_T10.bam LoCENH3_rep1
+	../../PROTOCOLS/macs_peakfinding.sh BWA_mapping/SML_25_mapto_T10.bam BWA_mapping/SML_43_mapto_T10.bam LoCENH3_rep2
+	../../PROTOCOLS/macs_peakfinding.sh BWA_mapping/SML_39_mapto_T10.bam BWA_mapping/SML_38_mapto_T10.bam ZmCENH3_rep1
+	../../PROTOCOLS/macs_peakfinding.sh BWA_mapping/SML_40_mapto_T10.bam BWA_mapping/SML_38_mapto_T10.bam LoCENH3_rep2
 	
+	mkdir DiffBind_Analysis
+Generate the file cenh3_metadata.csv
 	
+	R
+	library("DiffBind")	
+Construct a new dba object from sample sheet.
+
+	cenh3 <-dba(sampleSheet="cenh3_metadata.csv")	
+Counts reads in binding site intervals, by default only includes peaks that are present in at least two peaksets. The binding affinity matrix represents scores calculated by TMM normalization (using edgeR), using ChIP read counts minus Control read counts and full library size.
+
+	cenh3_affinity <- dba.count(cenh3)
+	save(cenh3_affinity, file="cenh3_affinity.RData")
+	
+	library(corrplot)
+	corvals <- dba.plotHeatmap(cenh3_affinity)
+	pdf("corrplot.pdf")
+	corrplot(corvals,method="shade",shade.col=NA,tl.col="black",tl.srt=45,addCoef.col="black",order="AOE")
+	dev.off()
+	
+Generate a bed file for the CEN180 repeats colored by cluster, this will be useful for comparing along with the CENH3 Fold Enrichment bigwig (bw) files on IGV
+
+	cd Scripts/
+	R
+	source("TAIR10_CEN_Bed_generator.R")
+
 	
 [Henikoff2015]: http://www.ncbi.nlm.nih.gov/pubmed/25927077
 

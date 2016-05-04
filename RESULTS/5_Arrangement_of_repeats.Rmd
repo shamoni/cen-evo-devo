@@ -1,0 +1,80 @@
+---
+title: "Mapping the physical arrangement of repeats by cluster"
+output: html_document
+---
+```{r setup, echo=FALSE}
+knitr::opts_knit$set(root.dir = '../EXPERIMENTS/8_ChIPseq_2_Clstr')
+knitr::opts_chunk$set(fig.path='Figures/')
+knitr::opts_chunk$set(message=FALSE,warning=FALSE,error=FALSE)
+knitr::opts_chunk$set(dev=c('png'))
+```
+To visualize the physical arrangement of the repeats, I plotted repeats coloured by cluster in order of identification along each TAIR10 chromosome. The arrangment is sequential and omits non-CEN180 sequences interspersed between repeats. The plots below indicate that *A. thaliana* repeats evolved in two waves with Clusters 1 and 4 being the youngest forming a central core, enveloped by Clusters 2 and 3 on the edges. Interestingly, we have discovered  Clusters 5 and 6 as pericentric Chromosome 1 specific repeats.
+```{r Repeats_along_T10, echo=FALSE}
+library(phyclust)
+library(reshape)
+library(gridExtra)
+source("./Scripts/clstr_pos_functions.R")
+seqdata <- read.fasta("q_CEN2_All_K6.aln2")
+ids <- seqdata$seqname
+ids.T10 <- ids[grepl("Chr",ids)]
+T10.df <-rep_pos_df(ids.T10)
+T10.grid.Cluster <-clstr_grid(T10.df,parseclstrs,"Cluster")
+T10.grid.Strand <-clstr_grid(T10.df,parseclstrs,"Strand")
+p <- plot_grid(T10.grid.Cluster[[1]],T10.grid.Cluster[[2]],"Cluster")
+q <- plot_grid(T10.grid.Strand[[1]],rep("",5),"Strand")
+q <-q + theme(axis.title.x=element_blank())
+pushViewport(viewport(layout = grid.layout(8,8)))
+vplayout <- function(x, y) viewport(layout.pos.row = x, layout.pos.col = y)
+print(p, vp = vplayout(1:8,1:8))
+print(q, vp = vplayout(1:3,4:7))
+```
+To quantify the sequence neighbourhood of repeats by cluster I classified the sequences adjacent to all repeats icentified in the TAIR10 and PacBio assemblies into either a CEN180 cluster or not CEN180 sequence. A plot of the proportions shows that for clusters 1 through 4 the most likely neighboring sequnence is a CEN180 repeat belonging to the same cluster, indicating a homogenous arrangement of repeats. Also, sequences from related clusters occur in greater proximity to each other.
+```{r Adjacent_sequence, echo=FALSE}
+adj.df <- adj_counts_df(ids)
+adj.prop.df <-as.data.frame(prop.table(as.matrix(adj.df[-1]),margin=2))
+adj.prop.df$Adjacent <- adj.df$Adjacent
+plot.adjacent(melt(adj.prop.df))
+```
+Since, Cluster4 repeat sequences are under-represented in the assemblies I wanted to identify the PacBio contig with the most number of Cluster4 repeats to analyze their arrangement. Contig JSAD01000006.1 appears to have the maximum number of Cluster 4 repeats, 39, out of a total of 219 number of repeats.
+```{r echo=FALSE}
+library(phyclust)
+seqdata <- read.fasta("q_CEN2_All_K6.aln2")
+ids <- seqdata$seqname
+ids.PB <- ids[!grepl("Chr",ids)]
+PB.df <-rep_pos_df(ids.PB)
+All <- count(PB.df$Contig)
+Cluster4 <- count(PB.df$Contig[PB.df$Cluster==4])
+Merge <- merge(Cluster4,All, by="x")
+names(Merge) <- c("Contig","Cluster4","Total")
+Merge <-Merge[order(-Merge$Cluster4),]
+rownames(Merge) <- NULL
+library(knitr)
+kable(Merge)
+```
+
+Location of repeats on the JSAD01000006.1 PacBio contig, colored by cluster. Repeats from Cluster 4 occur in a single block at 5' end, while repeats from cluster 2 and 3 intermingle. 
+
+```{r Clusters_along_contig6, echo=FALSE, fig.height=0.75, fig.width=5, fig.align='center'}
+extract <-grepl("JSAD01000006.1",seqdata$seqname)
+Contig6.ids <- seqdata$seqname[extract]
+Contig6.df <-rep_pos_df(Contig6.ids)
+Contig6.grid.Cluster <-clstr_grid(Contig6.df,parseclstrs_withgaps,"Cluster")
+plot_grid(Contig6.grid.Cluster[[1]],"","Cluster") +guides(fill="none") + theme(axis.title.x=element_blank())
+```
+Phylogenetic relationship of the repeats on contig JSAD01000006.1 show a striking homogeneity of Cluster 4 sequences, with very short branch lengths. While sequences from Cluster 2 and 3 span a much greater degree of diversity.
+```{r Contig6_NJtree, echo=FALSE}
+extract <-grepl("JSAD01000006.1",seqdata$seqname)
+nid <- seqdata$org[extract,1:seqdata$seqlen]
+ret <- phyclust.edist(nid, edist.model = .edist.model[1])
+ret.tree <- nj(ret)
+load("../7_PB_and_T10/RData/findbest6_Kmedoids.RData")
+cl.id <- findbest6_Kmedoids$class.id[extract]
+custom <-c(heat.colors(10)[3],terrain.colors(10)[c(1,4)],heat.colors(10)[7],topo.colors(10)[c(4,3)])
+.Color <- custom
+layout(matrix(c(1,1,2,1,1,2),2,3,byrow=TRUE),respect=TRUE)
+par(mar=c(0,0,0,0))
+print(plotnj(ret.tree,cl.id, edge.width=0.75,edge.width.class=3,type="r"))
+add.scale.bar(length=0.1,lcol="black",lwd=1)
+plot.new()
+legend('center',c("1","2","3","4","5","6"), fill = .Color, bty="n",title="Clusters", cex=1.2)
+```

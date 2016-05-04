@@ -1,0 +1,12 @@
+LibraryID,Sample,Antibody
+SML_14_merged.fa,WT (+/+),INPUT
+SML_17_merged.fa,WT (+/+),AtCENH3
+SML_18_merged.fa,WT (+/+),AtCENH3
+SML_19_merged.fa,LoCENH3 (-/-),AtCENH3
+SML_23_merged.fa,LoCENH3 (-/-),LoCENH3
+SML_25_merged.fa,LoCENH3 (-/-),LoCENH3
+SML_37_merged.fa,LoCENH3 (-/-),INPUT
+SML_38_merged.fa,WT (+/+),ZmCENH3
+SML_39_merged.fa,ZmCENH3 (-/-),ZmCENH3
+SML_40_merged.fa,ZmCENH3 (-/-),ZmCENH3
+SML_43_merged.fa,ZmCENH3 (-/-),LoCENH3
